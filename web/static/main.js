@@ -35,8 +35,8 @@ topCamera.position.set(0.0, 0.0, 0.78);
 topCamera.lookAt(0.0, 0.0, 0.02);
 
 const armCamera = new THREE.PerspectiveCamera(42, 1, 0.01, 20);
-armCamera.position.set(-0.70, 0.78, 0.42);
-armCamera.lookAt(0.02, 0.10, 0.10);
+armCamera.position.set(-0.72, 0.04, 0.52);
+armCamera.lookAt(0.02, 0.04, 0.06);
 
 // 조명
 const ambient = new THREE.AmbientLight(0xffffff, 0.7);
@@ -83,6 +83,7 @@ resetBtn.addEventListener("click", async () => {
 });
 
 window.addEventListener("resize", resizeRenderers);
+window.addEventListener("resize", resizeBoard2d);
 
 function initWebSocket() {
   const protocol = window.location.protocol === "https:" ? "wss" : "ws";
@@ -108,10 +109,21 @@ async function loadState() {
   applyState(await response.json());
 }
 
+function resizeBoard2d() {
+  const panelRect = boardEl.parentElement.getBoundingClientRect();
+  const reservedHeight = 132;
+  const availableWidth = Math.max(280, panelRect.width - 24);
+  const availableHeight = Math.max(280, panelRect.height - reservedHeight);
+  const rawSize = Math.min(availableWidth, availableHeight, 656);
+  const boardSize = Math.max(280, Math.floor(rawSize / 8) * 8);
+  boardEl.style.setProperty("--board-size", `${boardSize}px`);
+}
+
 function applyState(nextState) {
   state = nextState;
   busy = state.status !== "white_turn";
   boardPieces = parseFenPieces(state.fen);
+  resizeBoard2d();
   renderBoard2d();
   if (!activeAnimation && animationQueue.length === 0) {
     syncPieces3d(boardPieces);
@@ -153,7 +165,24 @@ function renderBoard2d() {
       if (legalTargets.has(square)) button.classList.add("legal");
       if (busy) button.classList.add("busy");
       button.dataset.square = square;
-      button.textContent = PIECES[boardPieces[square]] ?? "";
+      const piece = boardPieces[square];
+      const pieceSpan = document.createElement("span");
+      pieceSpan.className = `piece ${piece && piece === piece.toUpperCase() ? "white-piece" : "black-piece"}`;
+      pieceSpan.textContent = PIECES[piece] ?? "";
+      button.appendChild(pieceSpan);
+
+      if (file === 0) {
+        const rankLabel = document.createElement("span");
+        rankLabel.className = "coord rank-label";
+        rankLabel.textContent = String(rank + 1);
+        button.appendChild(rankLabel);
+      }
+      if (rank === 0) {
+        const fileLabel = document.createElement("span");
+        fileLabel.className = "coord file-label";
+        fileLabel.textContent = String.fromCharCode(97 + file);
+        button.appendChild(fileLabel);
+      }
       button.addEventListener("click", () => onSquareClick(square));
       boardEl.appendChild(button);
     }
