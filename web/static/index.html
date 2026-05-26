@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Chess Robot Arm</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="panel board-panel">
+        <header class="topbar">
+          <div>
+            <h1>AI Chess Robot</h1>
+            <p id="status">연결 중</p>
+          </div>
+          <button id="resetBtn" type="button">Reset</button>
+        </header>
+        <div id="board" class="board" aria-label="2D chess board"></div>
+        <div class="move-row">
+          <span id="selectedLabel">선택 없음</span>
+          <span id="lastMoveLabel">마지막 수 없음</span>
+        </div>
+      </section>
+      <section class="panel scene-panel">
+        <div class="scene-grid">
+          <div class="viewport">
+            <div class="viewport-label">Top View</div>
+            <canvas id="sceneTop"></canvas>
+          </div>
+          <div class="viewport">
+            <div class="viewport-label">Robot Arm View</div>
+            <canvas id="sceneArm"></canvas>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/static/main.js"></script>
+  </body>
+</html>

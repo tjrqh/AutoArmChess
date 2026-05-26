@@ -1,0 +1,148 @@
+<mujoco model="ai_chess_robot">
+  <compiler angle="radian" meshdir="." autolimits="true"/>
+  <option timestep="0.002" gravity="0 0 -9.81" integrator="implicitfast"/>
+
+  <default>
+    <geom friction="0.8 0.02 0.001" density="900"/>
+    <joint damping="2.5" armature="0.04"/>
+    <position kp="28" kv="7"/>
+  </default>
+
+  <asset>
+    <material name="board_light" rgba="0.86 0.82 0.72 1"/>
+    <material name="board_dark" rgba="0.28 0.36 0.30 1"/>
+    <material name="robot_mat" rgba="0.45 0.48 0.52 1"/>
+    <material name="piece_white" rgba="0.92 0.90 0.82 1"/>
+    <material name="piece_black" rgba="0.08 0.09 0.10 1"/>
+  </asset>
+
+  <worldbody>
+    <light pos="0 -1 1.5" dir="0 1 -1" diffuse="0.9 0.9 0.9"/>
+    <geom name="floor" type="plane" size="1.4 1.4 0.02" rgba="0.16 0.16 0.16 1"/>
+
+    <!--
+      체스판은 시각적으로 8x8 칸을 표현하지만, 학습 성능을 위해
+      개별 칸에는 복잡한 충돌 메시를 두지 않는다. 충돌은 아래 board_base
+      박스 하나로 충분하다.
+    -->
+    <body name="board" pos="0.34 0 0.02">
+      <geom name="board_base" type="box" size="0.24 0.24 0.015" rgba="0.20 0.22 0.20 1"/>
+
+      <geom name="a1" type="box" pos="-0.21 -0.21 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="b1" type="box" pos="-0.15 -0.21 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="c1" type="box" pos="-0.09 -0.21 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="d1" type="box" pos="-0.03 -0.21 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="e1" type="box" pos="0.03 -0.21 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="f1" type="box" pos="0.09 -0.21 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="g1" type="box" pos="0.15 -0.21 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="h1" type="box" pos="0.21 -0.21 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="a2" type="box" pos="-0.21 -0.15 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="b2" type="box" pos="-0.15 -0.15 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="c2" type="box" pos="-0.09 -0.15 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="d2" type="box" pos="-0.03 -0.15 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="e2" type="box" pos="0.03 -0.15 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="f2" type="box" pos="0.09 -0.15 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="g2" type="box" pos="0.15 -0.15 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="h2" type="box" pos="0.21 -0.15 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="a3" type="box" pos="-0.21 -0.09 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="b3" type="box" pos="-0.15 -0.09 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="c3" type="box" pos="-0.09 -0.09 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="d3" type="box" pos="-0.03 -0.09 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="e3" type="box" pos="0.03 -0.09 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="f3" type="box" pos="0.09 -0.09 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="g3" type="box" pos="0.15 -0.09 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="h3" type="box" pos="0.21 -0.09 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="a4" type="box" pos="-0.21 -0.03 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="b4" type="box" pos="-0.15 -0.03 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="c4" type="box" pos="-0.09 -0.03 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="d4" type="box" pos="-0.03 -0.03 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="e4" type="box" pos="0.03 -0.03 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="f4" type="box" pos="0.09 -0.03 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="g4" type="box" pos="0.15 -0.03 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="h4" type="box" pos="0.21 -0.03 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="a5" type="box" pos="-0.21 0.03 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="b5" type="box" pos="-0.15 0.03 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="c5" type="box" pos="-0.09 0.03 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="d5" type="box" pos="-0.03 0.03 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="e5" type="box" pos="0.03 0.03 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="f5" type="box" pos="0.09 0.03 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="g5" type="box" pos="0.15 0.03 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="h5" type="box" pos="0.21 0.03 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="a6" type="box" pos="-0.21 0.09 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="b6" type="box" pos="-0.15 0.09 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="c6" type="box" pos="-0.09 0.09 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="d6" type="box" pos="-0.03 0.09 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="e6" type="box" pos="0.03 0.09 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="f6" type="box" pos="0.09 0.09 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="g6" type="box" pos="0.15 0.09 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="h6" type="box" pos="0.21 0.09 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="a7" type="box" pos="-0.21 0.15 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="b7" type="box" pos="-0.15 0.15 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="c7" type="box" pos="-0.09 0.15 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="d7" type="box" pos="-0.03 0.15 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="e7" type="box" pos="0.03 0.15 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="f7" type="box" pos="0.09 0.15 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="g7" type="box" pos="0.15 0.15 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="h7" type="box" pos="0.21 0.15 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="a8" type="box" pos="-0.21 0.21 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="b8" type="box" pos="-0.15 0.21 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="c8" type="box" pos="-0.09 0.21 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="d8" type="box" pos="-0.03 0.21 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="e8" type="box" pos="0.03 0.21 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="f8" type="box" pos="0.09 0.21 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+      <geom name="g8" type="box" pos="0.15 0.21 0.017" size="0.03 0.03 0.003" material="board_light"/>
+      <geom name="h8" type="box" pos="0.21 0.21 0.017" size="0.03 0.03 0.003" material="board_dark"/>
+
+      <!--
+        기물 예시: visual/collision 분리.
+        실제 렌더링용 mesh를 쓰더라도 collision geom은 원기둥 primitive로 유지한다.
+        이렇게 하면 접촉 계산량이 낮아져 headless 대량 시뮬레이션에서 유리하다.
+      -->
+      <body name="white_pawn_e2" pos="0.03 -0.15 0.055">
+        <geom name="white_pawn_e2_collision" type="cylinder" size="0.018 0.035" material="piece_white"/>
+      </body>
+      <body name="black_pawn_e7" pos="0.03 0.15 0.055">
+        <geom name="black_pawn_e7_collision" type="cylinder" size="0.018 0.035" material="piece_black"/>
+      </body>
+    </body>
+
+    <!-- 단순 6자유도 로봇팔 예시. 실제 URDF/MJCF로 교체 가능한 경계다. -->
+    <body name="robot_base" pos="0 0 0.04">
+      <geom type="cylinder" size="0.055 0.035" material="robot_mat"/>
+      <body name="link1" pos="0 0 0.05">
+        <joint name="joint1" type="hinge" axis="0 0 1" range="-3.14 3.14"/>
+        <geom type="capsule" fromto="0 0 0 0 0 0.16" size="0.025" material="robot_mat"/>
+        <body name="link2" pos="0 0 0.16">
+          <joint name="joint2" type="hinge" axis="0 1 0" range="-2.6 2.6"/>
+          <geom type="capsule" fromto="0 0 0 0.16 0 0" size="0.022" material="robot_mat"/>
+          <body name="link3" pos="0.16 0 0">
+            <joint name="joint3" type="hinge" axis="0 1 0" range="-2.6 2.6"/>
+            <geom type="capsule" fromto="0 0 0 0.14 0 0" size="0.02" material="robot_mat"/>
+            <body name="link4" pos="0.14 0 0">
+              <joint name="joint4" type="hinge" axis="1 0 0" range="-3.14 3.14"/>
+              <geom type="capsule" fromto="0 0 0 0.08 0 0" size="0.018" material="robot_mat"/>
+              <body name="link5" pos="0.08 0 0">
+                <joint name="joint5" type="hinge" axis="0 1 0" range="-3.14 3.14"/>
+                <geom type="capsule" fromto="0 0 0 0.05 0 0" size="0.015" material="robot_mat"/>
+                <body name="tool" pos="0.05 0 0">
+                  <joint name="joint6" type="hinge" axis="1 0 0" range="-3.14 3.14"/>
+                  <geom type="sphere" size="0.018" rgba="0.2 0.2 0.24 1"/>
+                  <site name="ee_site" pos="0.025 0 0" size="0.01" rgba="1 0 0 1"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <position name="joint1" joint="joint1"/>
+    <position name="joint2" joint="joint2"/>
+    <position name="joint3" joint="joint3"/>
+    <position name="joint4" joint="joint4"/>
+    <position name="joint5" joint="joint5"/>
+    <position name="joint6" joint="joint6"/>
+  </actuator>
+</mujoco>

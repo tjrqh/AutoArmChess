@@ -1,0 +1,34 @@
+simulation:
+  model_path: "assets/mujoco/chess_robot.xml"
+  timestep: 0.002
+  control_hz: 60
+  headless: true
+
+board:
+  square_size: 0.06
+  origin_in_board_frame: [-0.24, -0.24, 0.02]
+  piece_hover_height: 0.12
+  piece_pick_height: 0.035
+
+robot:
+  base_to_board_translation: [0.34, 0.0, 0.0]
+  base_to_board_rpy: [0.0, 0.0, 0.0]
+  end_effector_site: "ee_site"
+  joint_names:
+    - "joint1"
+    - "joint2"
+    - "joint3"
+    - "joint4"
+    - "joint5"
+    - "joint6"
+  singularity_min_det: 0.0
+  joint_velocity_limit: 1.6
+
+trajectory:
+  duration: 1.2
+  sample_hz: 60
+  approach_duration: 0.5
+  lift_duration: 0.5
+
+ai:
+  depth: 2
