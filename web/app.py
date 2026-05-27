@@ -113,16 +113,26 @@ class WebChessGame:
         """프론트엔드가 보드를 그리는 데 필요한 현재 상태를 만든다."""
 
         game_result = self._game_result_payload()
+        status = self._normalized_status()
         return {
             "type": "state",
             "fen": self.board.fen(),
             "turn": "white" if self.board.turn == chess.WHITE else "black",
-            "status": self.status,
+            "status": status,
             "legal_moves": [move.uci() for move in self.board.legal_moves],
             "game_over": self.board.is_game_over(),
             "result": self.board.result() if self.board.is_game_over() else None,
             "game_result": game_result,
         }
+
+    def _normalized_status(self) -> str:
+        """보드 상태와 UI 상태가 어긋나지 않도록 status를 정규화한다."""
+
+        if self.board.is_game_over():
+            return "game_over"
+        if self.status == "game_over":
+            return "white_turn" if self.board.turn == chess.WHITE else "ai_thinking"
+        return self.status
 
     def _game_result_payload(self) -> dict[str, str | None] | None:
         """초보자도 이해할 수 있는 게임 종료 메시지를 만든다."""
@@ -214,34 +224,55 @@ class WebChessGame:
 
         await asyncio.sleep(self.animation_seconds)
 
+        terminal_state: dict[str, Any] | None = None
         async with self.lock:
             if generation != self.generation:
                 return
             if self.board.is_game_over():
                 self.busy = False
                 self.status = "game_over"
-                state = self.snapshot()
-                await self.manager.broadcast(state)
-                return
-            self.status = "ai_thinking"
-            fen = self.board.fen()
+                terminal_state = self.snapshot()
+                fen = ""
+            else:
+                self.status = "ai_thinking"
+                fen = self.board.fen()
+
+        if terminal_state is not None:
+            await self.manager.broadcast(terminal_state)
+            return
 
         await self.manager.broadcast(self.snapshot())
-        ai_move = await asyncio.to_thread(self.engine.best_move, fen)
+        try:
+            ai_move = await asyncio.to_thread(self.engine.best_move, fen)
+        except Exception:
+            ai_move = None
 
+        fallback_state: dict[str, Any] | None = None
         async with self.lock:
             if generation != self.generation:
                 return
-            if ai_move is None or self.board.is_game_over():
+            if self.board.is_game_over():
                 self.busy = False
                 self.status = "game_over"
-                state = self.snapshot()
-                await self.manager.broadcast(state)
-                return
+                fallback_state = self.snapshot()
+            elif ai_move is None or ai_move not in self.board.legal_moves:
+                ai_move = next(iter(self.board.legal_moves), None)
+            if fallback_state is None and ai_move is None:
+                self.busy = False
+                self.status = "white_turn" if self.board.turn == chess.WHITE else "ai_thinking"
+                fallback_state = self.snapshot()
 
-            animation = self._apply_move(ai_move, actor="black")
-            self.status = "ai_robot_moving"
-            state = self.snapshot()
+            if fallback_state is not None:
+                animation = None
+                state = fallback_state
+            else:
+                animation = self._apply_move(ai_move, actor="black")
+                self.status = "ai_robot_moving"
+                state = self.snapshot()
+
+        if animation is None:
+            await self.manager.broadcast(state)
+            return
 
         await self.manager.broadcast({"type": "move", "move": self._animation_payload(animation)})
         await self.manager.broadcast(state)
