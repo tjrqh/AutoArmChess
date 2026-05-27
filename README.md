@@ -5,6 +5,8 @@ Python 기반의 **AI 체스 로봇팔 3D 시뮬레이션 프로젝트**입니�
 사용자는 웹 브라우저의 2D 체스판에서 White로 수를 두고, AI는 Black으로 응수합니다. 각 이동은 우측 Three.js 3D 화면에서 로봇팔이 기물을 집어 옮기는 Pick-and-Place 애니메이션으로 재생됩니다. 별도로 MuJoCo 기반 Headless/GUI 시뮬레이션 코드도 포함되어 있어, 렌더링 없는 대량 실험과 물리 시뮬레이션 확장을 분리해서 가져갈 수 있습니다.
 
 ![Project overview](docs/images/overview.svg)
+<img width="3276" height="1598" alt="image" src="https://github.com/user-attachments/assets/d764a57e-a5bd-4cbf-b882-358f2677177d" />
+
 
 ## 주요 기능
 
