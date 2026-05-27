@@ -86,4 +86,3 @@ def board_pose_to_base_pose(pose: Pose3D, robot: RobotSettings) -> Pose3D:
         pitch=pose.pitch,
         yaw=pose.yaw,
     )
-

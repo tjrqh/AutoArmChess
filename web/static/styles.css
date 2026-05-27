@@ -243,6 +243,55 @@ p {
   pointer-events: none;
 }
 
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  place-items: center;
+  padding: 24px;
+  background: rgb(9 12 15 / 0.68);
+}
+
+.modal.open {
+  display: grid;
+}
+
+.modal-panel {
+  width: min(420px, 100%);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 8px;
+  background: #20262d;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 0.42);
+  padding: 24px;
+}
+
+.modal-kicker {
+  margin: 0 0 8px;
+  color: #f2c14e;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.modal-panel h2 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: 0;
+}
+
+.modal-panel p {
+  color: #d6dde5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
 #sceneTop,
 #sceneArm {
   display: block;

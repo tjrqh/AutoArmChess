@@ -10,6 +10,11 @@ const statusEl = document.querySelector("#status");
 const selectedLabel = document.querySelector("#selectedLabel");
 const lastMoveLabel = document.querySelector("#lastMoveLabel");
 const resetBtn = document.querySelector("#resetBtn");
+const gameOverModal = document.querySelector("#gameOverModal");
+const gameOverTitle = document.querySelector("#gameOverTitle");
+const gameOverMessage = document.querySelector("#gameOverMessage");
+const modalCloseBtn = document.querySelector("#modalCloseBtn");
+const modalResetBtn = document.querySelector("#modalResetBtn");
 
 let state = null;
 let selected = null;
@@ -17,6 +22,7 @@ let legalTargets = new Set();
 let busy = false;
 let boardPieces = {};
 let ws = null;
+let announcedResultFen = null;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x1a1f26);
@@ -76,11 +82,25 @@ loadState();
 animate();
 
 resetBtn.addEventListener("click", async () => {
+  await resetGame();
+});
+
+modalResetBtn.addEventListener("click", async () => {
+  hideGameOverModal();
+  await resetGame();
+});
+
+modalCloseBtn.addEventListener("click", () => {
+  hideGameOverModal();
+});
+
+async function resetGame() {
   animationQueue.length = 0;
   activeAnimation = null;
+  announcedResultFen = null;
   const response = await fetch("/api/reset", { method: "POST" });
   applyState(await response.json());
-});
+}
 
 window.addEventListener("resize", resizeRenderers);
 window.addEventListener("resize", resizeBoard2d);
@@ -129,11 +149,12 @@ function applyState(nextState) {
     syncPieces3d(boardPieces);
   }
   statusEl.textContent = statusText(state);
+  maybeShowGameOver(state);
 }
 
 function statusText(current) {
   if (current.game_over) {
-    return `게임 종료: ${current.result}`;
+    return current.game_result?.message ?? `게임 종료: ${current.result}`;
   }
   const labels = {
     white_turn: "White 차례입니다. 2D 보드에서 말을 선택하세요.",
@@ -142,6 +163,24 @@ function statusText(current) {
     ai_robot_moving: "AI 수를 3D 로봇팔이 재생 중입니다.",
   };
   return labels[current.status] ?? current.status;
+}
+
+function maybeShowGameOver(current) {
+  if (!current.game_over || !current.game_result) return;
+  if (announcedResultFen === current.fen) return;
+
+  announcedResultFen = current.fen;
+  gameOverTitle.textContent = current.game_result.winner === "draw"
+    ? "무승부"
+    : `${current.game_result.winner_label} 승리`;
+  gameOverMessage.textContent = current.game_result.message;
+  gameOverModal.classList.add("open");
+  gameOverModal.setAttribute("aria-hidden", "false");
+}
+
+function hideGameOverModal() {
+  gameOverModal.classList.remove("open");
+  gameOverModal.setAttribute("aria-hidden", "true");
 }
 
 function renderBoard2d() {

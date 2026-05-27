@@ -112,6 +112,7 @@ class WebChessGame:
     def snapshot(self) -> dict[str, Any]:
         """프론트엔드가 보드를 그리는 데 필요한 현재 상태를 만든다."""
 
+        game_result = self._game_result_payload()
         return {
             "type": "state",
             "fen": self.board.fen(),
@@ -120,6 +121,52 @@ class WebChessGame:
             "legal_moves": [move.uci() for move in self.board.legal_moves],
             "game_over": self.board.is_game_over(),
             "result": self.board.result() if self.board.is_game_over() else None,
+            "game_result": game_result,
+        }
+
+    def _game_result_payload(self) -> dict[str, str | None] | None:
+        """초보자도 이해할 수 있는 게임 종료 메시지를 만든다."""
+
+        outcome = self.board.outcome(claim_draw=True)
+        if outcome is None:
+            return None
+
+        if outcome.winner == chess.WHITE:
+            winner = "white"
+            winner_label = "White"
+        elif outcome.winner == chess.BLACK:
+            winner = "black"
+            winner_label = "Black"
+        else:
+            winner = "draw"
+            winner_label = "Draw"
+
+        reason_map = {
+            chess.Termination.CHECKMATE: "체크메이트",
+            chess.Termination.STALEMATE: "스테일메이트",
+            chess.Termination.INSUFFICIENT_MATERIAL: "기물 부족 무승부",
+            chess.Termination.SEVENTYFIVE_MOVES: "75수 규칙 무승부",
+            chess.Termination.FIVEFOLD_REPETITION: "5회 반복 무승부",
+            chess.Termination.FIFTY_MOVES: "50수 규칙 무승부",
+            chess.Termination.THREEFOLD_REPETITION: "3회 반복 무승부",
+            chess.Termination.VARIANT_WIN: "특수 승리",
+            chess.Termination.VARIANT_LOSS: "특수 패배",
+            chess.Termination.VARIANT_DRAW: "특수 무승부",
+        }
+        reason = reason_map.get(outcome.termination, "게임 종료")
+
+        if outcome.termination == chess.Termination.CHECKMATE and outcome.winner is not None:
+            message = f"{winner_label}가 체크메이트로 승리했습니다."
+        elif outcome.winner is None:
+            message = f"무승부입니다. 사유: {reason}"
+        else:
+            message = f"{winner_label}가 승리했습니다. 사유: {reason}"
+
+        return {
+            "winner": winner,
+            "winner_label": winner_label,
+            "reason": reason,
+            "message": message,
         }
 
     async def reset(self) -> dict[str, Any]:
